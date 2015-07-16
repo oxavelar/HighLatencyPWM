@@ -46,9 +46,11 @@ public:
     explicit PWM(unsigned short id, Dutycycle value, Period period_ns);
     virtual ~PWM(void);
 
-    void setDutyCycle(const Dutycycle &value);
+    void setState(const State &state);
+    void setDutyCycle(const Dutycycle &dutycycle);
     void setPeriod(const Period &period_ns);
 
+    State getState(void);
     Dutycycle getDutyCycle(void);
     Period getPeriod(void);
 
@@ -58,8 +60,8 @@ private:
 
     const unsigned short _id;
     const std::string _id_str;
-    Period _period_ns;
     Dutycycle _dutycycle;
+    Period _period_ns;
     State _state = State::DISABLED;
 
     void initCommon(void) const;

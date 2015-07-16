@@ -43,46 +43,23 @@ const std::string PWM::_sysfsPath("/sys/class/pwm/");
 
 
 PWM::PWM(unsigned short id) :
-   _id(id), _id_str(std::to_string(id))
+   _id(id),
+   _id_str(std::to_string(id)),
+    _dutycycle(50),
+   _period_ns(2000000),
+   _state(PWM::State::DISABLED)
 {
    initCommon();
 }
 
 
-PWM::PWM(unsigned short id, PWM::Dutycycle value, PWM::Period period_ns):
-   _id(id), _id_str(std::to_string(id)),
-   _dutycycle(value),
-   _period_ns(period_ns)
+PWM::PWM(unsigned short id, PWM::Dutycycle dutycycle, PWM::Period period_ns) :
+   _id(id),
+   _id_str(std::to_string(id)),
+   _dutycycle(dutycycle),
+   _period_ns(period_ns),
+   _state(PWM::State::DISABLED)
 {
-
-   /* Attempt to set the dutycycle */
-   {
-      std::ofstream sysfs_dutycycle(_sysfsPath + "pwm" + _id_str + "/duty_cycle", std::ofstream::app);
-      if( !sysfs_dutycycle.is_open() )
-      {
-         throw std::runtime_error(
-            "Unable to set duty cycle for PWM " + _id_str + "." +
-            "Are you sure this PWM channel can be duty cycle configured?");
-      }
-      /* Set the numerical string value */
-      sysfs_dutycycle << std::to_string(_dutycycle);
-      sysfs_dutycycle.close();
-   }
-
-   /* Attempt to set the period */
-   {
-      std::ofstream sysfs_period(_sysfsPath + "pwm" + _id_str + "/period", std::ofstream::app);
-      if( !sysfs_period.is_open() )
-      {
-         throw std::runtime_error(
-            "Unable to set period for PWM " + _id_str + "." +
-            "Are you sure this PWM channel can be period configured?");
-      }
-      /* Set the numerical string value */
-      sysfs_period << std::to_string(_period_ns);
-      sysfs_period.close();
-   }
-
    initCommon();
 }
 
@@ -170,21 +147,12 @@ void PWM::initCommon(void) const
       sysfs_export << _id_str;
       sysfs_export.close();
    }
+   
+   /* Common initializations on default behaivour */
+   //setState(_state);
+   //setPeriod(_period);
+   //setDutyCycle(_dutycycle);
 
-
-
-   /* attempt to set disable by default */
-   {
-      std::ofstream sysfs_enable(
-         _sysfsPath + "gpio" + _id_str + "/enable", std::ofstream::app);
-      if( !sysfs_enable.is_open() )
-      {
-         throw std::runtime_error("Unable to disable PWM " + _id_str);
-      }
-      if( _state == PWM::State::DISABLED )      sysfs_enable << "0";
-      else if( _state == PWM::State::ENABLED )  sysfs_enable << "1";
-      sysfs_enable.close();
-   }
 }
 
 PWM::~PWM()
@@ -209,6 +177,46 @@ PWM::~PWM()
       cerr << "Exception caught in destructor for PWM " << _id_str << endl;
    }
 }
+
+
+void PWM::setState(const PWM::State &state)
+{
+   /* attempt to set disable by default */
+   {
+      std::ofstream sysfs_enable(
+         _sysfsPath + "gpio" + _id_str + "/enable", std::ofstream::app);
+      if( !sysfs_enable.is_open() )
+      {
+         throw std::runtime_error("Unable to disable PWM " + _id_str);
+      }
+      if( state == PWM::State::DISABLED )      sysfs_enable << "0";
+      else if( state == PWM::State::ENABLED )  sysfs_enable << "1";
+      sysfs_enable.close();
+   }
+   _state = state;
+}
+
+
+PWM::State PWM::getState(void)
+{
+   std::ifstream sysfs_value(_sysfsPath + "pwm" + _id_str + "/enable");
+   if( !sysfs_value.is_open() )
+   {
+      throw std::runtime_error("Unable to obtain enabled value for PWM " + _id_str);
+   }
+
+   const char value = sysfs_value.get();
+   if( !sysfs_value.good() )
+   {
+      throw std::runtime_error("Unable to obtain enabled value for PWM " + _id_str);
+   }
+   
+   State status = PWM::State::DISABLED;
+   if ( value == '1' )  status = PWM::State::ENABLED;
+
+   return(status);
+}
+
 
 
 void PWM::setDutyCycle(const PWM::Dutycycle &value)
@@ -246,7 +254,6 @@ PWM::Dutycycle PWM::getDutyCycle(void)
 
    Dutycycle val = value - '0';
    _dutycycle = val;
-
    return(val);
 }
 
