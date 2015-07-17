@@ -45,7 +45,7 @@ const std::string PWM::_sysfsPath("/sys/class/pwm/");
 PWM::PWM(unsigned short id) :
    _id(id),
    _id_str(std::to_string(id)),
-    _dutycycle(50),
+    _duty_ns(1000000),
    _period_ns(2000000),
    _state(PWM::State::DISABLED)
 {
@@ -53,10 +53,10 @@ PWM::PWM(unsigned short id) :
 }
 
 
-PWM::PWM(unsigned short id, PWM::Dutycycle dutycycle, PWM::Period period_ns) :
+PWM::PWM(unsigned short id, PWM::Duty duty_ns, PWM::Period period_ns) :
    _id(id),
    _id_str(std::to_string(id)),
-   _dutycycle(dutycycle),
+   _duty_ns(duty_ns),
    _period_ns(period_ns),
    _state(PWM::State::DISABLED)
 {
@@ -82,20 +82,8 @@ void PWM::initCommon(void) const
          if( is_directory(itr->status()) &&
              itr->path().string().find("pwmchip") != std::string::npos )
          {
-            std::ifstream infile(itr->path().string() + "/base");
-            if( !infile )
-            {
-               throw std::runtime_error("Unable to read  " + itr->path().string() + "/base");
-            }
-
-            /*
-               There is no way to be fast and const-correct here :(
-               http://insanecoding.blogspot.com/2011/11/how-to-read-in-file-in-c.html
-            */
-            std::string base;
-            infile >> base;
-            infile.close();
-
+            std::ifstream infile(itr->path().string());
+            
             infile.open(itr->path().string() + "/npwm");
             if( !infile )
             {
@@ -107,7 +95,7 @@ void PWM::initCommon(void) const
             infile.close();
 
             /* PWM id is valid */
-            if( std::stoul(base) <= _id && _id < std::stoul(base) + std::stoul(npwm) )
+            if( _id < std::stoul(npwm) )
             {
                found = true;
                break;
@@ -151,7 +139,7 @@ void PWM::initCommon(void) const
    /* Common initializations on default behaivour */
    //setState(_state);
    //setPeriod(_period);
-   //setDutyCycle(_dutycycle);
+   //setDuty(_duty);
 
 }
 
@@ -218,41 +206,36 @@ PWM::State PWM::getState(void)
 }
 
 
-void PWM::setDutyCycle(const PWM::Dutycycle &value)
+void PWM::setDuty(const PWM::Duty &duty_ns)
 {
-   if( (value > 100) or (value < 0) )
+   std::ofstream sysfs_duty(_sysfsPath + "pwm" + _id_str + "/duty_cycle", std::ofstream::app);
+   if( !sysfs_duty.is_open() )
    {
-      throw std::runtime_error("Pick a value between 0 and 100 for the PWM dutycycle");
+      throw std::runtime_error("Unable to set duty value for PWM " + _id_str);
    }
 
-   std::ofstream sysfs_dutycycle(_sysfsPath + "pwm" + _id_str + "/duty_cycle", std::ofstream::app);
-   if( !sysfs_dutycycle.is_open() )
-   {
-      throw std::runtime_error("Unable to set dutycycle value for PWM " + _id_str);
-   }
-
-   sysfs_dutycycle << std::to_string(value);
-   sysfs_dutycycle.close();
-   _dutycycle = value;
+   sysfs_duty << std::to_string(duty_ns);
+   sysfs_duty.close();
+   _duty_ns = duty_ns;
 }
 
 
-PWM::Dutycycle PWM::getDutyCycle(void)
+PWM::Duty PWM::getDuty(void)
 {
-   std::ifstream sysfs_dutycycle(_sysfsPath + "pwm" + _id_str + "/duty_cycle");
-   if( !sysfs_dutycycle.is_open() )
+   std::ifstream sysfs_duty(_sysfsPath + "pwm" + _id_str + "/duty_cycle");
+   if( !sysfs_duty.is_open() )
    {
-      throw std::runtime_error("Unable to get dutycycle value for PWM " + _id_str);
+      throw std::runtime_error("Unable to get duty value for PWM " + _id_str);
    }
 
-   const char value = sysfs_dutycycle.get();
-   if( !sysfs_dutycycle.good() )
+   const char value = sysfs_duty.get();
+   if( !sysfs_duty.good() )
    {
-      throw std::runtime_error("Unable to get dutycycle value for PWM " + _id_str);
+      throw std::runtime_error("Unable to get duty value for PWM " + _id_str);
    }
 
-   Dutycycle val = value - '0';
-   _dutycycle = val;
+   Duty val = std::strtoul(&value, NULL, 0);
+   _duty_ns = val;
    return(val);
 }
 
@@ -284,7 +267,7 @@ PWM::Period PWM::getPeriod(void)
       throw std::runtime_error("Unable to get period value for PWM " + _id_str);
    }
 
-   Period val = value - '0';
+   Period val = std::strtoul(&value, NULL, 0);
    _period_ns = val;
    return(val);
 }

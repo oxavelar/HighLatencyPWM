@@ -34,19 +34,19 @@ public:
     
     enum class State : char { DISABLED, ENABLED };
 
-    using Dutycycle = unsigned long long;
+    using Duty = unsigned long long;
     using Period = unsigned long long;
     
     explicit PWM(unsigned short id);
-    explicit PWM(unsigned short id, Dutycycle value, Period period_ns);
+    explicit PWM(unsigned short id, Duty duty_ns, Period period_ns);
     virtual ~PWM(void);
 
     void setState(const State &state);
-    void setDutyCycle(const Dutycycle &dutycycle);
+    void setDuty(const Duty &duty_ns);
     void setPeriod(const Period &period_ns);
 
     State getState(void);
-    Dutycycle getDutyCycle(void);
+    Duty getDuty(void);
     Period getPeriod(void);
 
 
@@ -55,7 +55,7 @@ private:
 
     const unsigned short _id;
     const std::string _id_str;
-    Dutycycle _dutycycle;
+    Duty _duty_ns;
     Period _period_ns;
     State _state = State::DISABLED;
 
