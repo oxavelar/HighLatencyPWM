@@ -22,25 +22,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef GPIO_HH
-#define GPIO_HH
+#ifndef PWM_HH
+#define PWM_HH
 
-#include "Uncopyable.hh"
-
-#include <atomic>
-#include <functional>
 #include <string>
-#include <thread>
 
 
-class PWM : private Uncopyable
+class PWM
 {
 public:
     
     enum class State : char { DISABLED, ENABLED };
 
-    using Dutycycle = long;
-    using Period = long;
+    using Dutycycle = unsigned long long;
+    using Period = unsigned long long;
     
     explicit PWM(unsigned short id);
     explicit PWM(unsigned short id, Dutycycle value, Period period_ns);

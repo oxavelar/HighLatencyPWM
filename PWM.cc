@@ -199,14 +199,14 @@ void PWM::setState(const PWM::State &state)
 
 PWM::State PWM::getState(void)
 {
-   std::ifstream sysfs_value(_sysfsPath + "pwm" + _id_str + "/enable");
-   if( !sysfs_value.is_open() )
+   std::ifstream sysfs_state(_sysfsPath + "pwm" + _id_str + "/enable");
+   if( !sysfs_state.is_open() )
    {
       throw std::runtime_error("Unable to obtain enabled value for PWM " + _id_str);
    }
 
-   const char value = sysfs_value.get();
-   if( !sysfs_value.good() )
+   const char value = sysfs_state.get();
+   if( !sysfs_state.good() )
    {
       throw std::runtime_error("Unable to obtain enabled value for PWM " + _id_str);
    }
@@ -218,7 +218,6 @@ PWM::State PWM::getState(void)
 }
 
 
-
 void PWM::setDutyCycle(const PWM::Dutycycle &value)
 {
    if( (value > 100) or (value < 0) )
@@ -226,34 +225,67 @@ void PWM::setDutyCycle(const PWM::Dutycycle &value)
       throw std::runtime_error("Pick a value between 0 and 100 for the PWM dutycycle");
    }
 
-   std::ofstream sysfs_value(_sysfsPath + "pwm" + _id_str + "/duty_cycle", std::ofstream::app);
-   if( !sysfs_value.is_open() )
+   std::ofstream sysfs_dutycycle(_sysfsPath + "pwm" + _id_str + "/duty_cycle", std::ofstream::app);
+   if( !sysfs_dutycycle.is_open() )
    {
       throw std::runtime_error("Unable to set dutycycle value for PWM " + _id_str);
    }
 
-   sysfs_value << std::to_string(value);
-   sysfs_value.close();
+   sysfs_dutycycle << std::to_string(value);
+   sysfs_dutycycle.close();
    _dutycycle = value;
 }
 
 
 PWM::Dutycycle PWM::getDutyCycle(void)
 {
-   std::ifstream sysfs_value(_sysfsPath + "pwm" + _id_str + "/duty_cycle");
-   if( !sysfs_value.is_open() )
+   std::ifstream sysfs_dutycycle(_sysfsPath + "pwm" + _id_str + "/duty_cycle");
+   if( !sysfs_dutycycle.is_open() )
    {
       throw std::runtime_error("Unable to get dutycycle value for PWM " + _id_str);
    }
 
-   const char value = sysfs_value.get();
-   if( !sysfs_value.good() )
+   const char value = sysfs_dutycycle.get();
+   if( !sysfs_dutycycle.good() )
    {
       throw std::runtime_error("Unable to get dutycycle value for PWM " + _id_str);
    }
 
    Dutycycle val = value - '0';
    _dutycycle = val;
+   return(val);
+}
+
+void PWM::setPeriod(const PWM::Period &value)
+{
+   std::ofstream sysfs_period(_sysfsPath + "pwm" + _id_str + "/period", std::ofstream::app);
+   if( !sysfs_period.is_open() )
+   {
+      throw std::runtime_error("Unable to set period value for PWM " + _id_str);
+   }
+
+   sysfs_period << std::to_string(value);
+   sysfs_period.close();
+   _period_ns = value;
+}
+
+
+PWM::Period PWM::getPeriod(void)
+{
+   std::ifstream sysfs_period(_sysfsPath + "pwm" + _id_str + "/period");
+   if( !sysfs_period.is_open() )
+   {
+      throw std::runtime_error("Unable to get period value for PWM " + _id_str);
+   }
+
+   const char value = sysfs_period.get();
+   if( !sysfs_period.good() )
+   {
+      throw std::runtime_error("Unable to get period value for PWM " + _id_str);
+   }
+
+   Period val = value - '0';
+   _period_ns = val;
    return(val);
 }
 
