@@ -82,9 +82,11 @@ void PWM::initCommon(void) const
          if( is_directory(itr->status()) &&
              itr->path().string().find("pwmchip") != std::string::npos )
          {
-            std::ifstream infile(itr->path().string());
-            
-            infile.open(itr->path().string() + "/npwm");
+            /* Obtain the base number of the chip */
+            size_t pos = itr->path().string().find("pwmchip");
+            std::string base = itr->path().string().substr(pos);
+
+            std::ifstream infile(itr->path().string() + "/npwm");
             if( !infile )
             {
                throw std::runtime_error("Unable to read  " + itr->path().string() + "/npwm");
@@ -95,7 +97,7 @@ void PWM::initCommon(void) const
             infile.close();
 
             /* PWM id is valid */
-            if( _id < std::stoul(npwm) )
+            if( std::stoul(base) <= _id && _id < std::stoul(base) + std::stoul(npwm) )
             {
                found = true;
                break;
