@@ -39,7 +39,7 @@ using std::endl;
 
 
 
-const std::string PWM::_sysfsPath("/sys/class/pwm/");
+std::string PWM::_sysfsPath("/sys/class/pwm/");
 
 
 PWM::PWM(unsigned short id) :
@@ -84,8 +84,9 @@ void PWM::initCommon(void) const
          {
             /* Obtain the base number of the chip */
             size_t pos = itr->path().string().find("pwmchip");
-            std::string base = itr->path().string().substr(pos);
-
+            std::string pattern = "pwmchip";
+            std::string base = itr->path().string().substr(pos + pattern.length());
+            
             std::ifstream infile(itr->path().string() + "/npwm");
             if( !infile )
             {
@@ -100,6 +101,8 @@ void PWM::initCommon(void) const
             if( std::stoul(base) <= _id && _id < std::stoul(base) + std::stoul(npwm) )
             {
                found = true;
+               /* Update our sysfs path for the object, we have local exports */
+               _sysfsPath = itr->path().string() + "/";
                break;
             }
          }
@@ -174,10 +177,10 @@ void PWM::setState(const PWM::State &state)
    /* attempt to set disable by default */
    {
       std::ofstream sysfs_enable(
-         _sysfsPath + "gpio" + _id_str + "/enable", std::ofstream::app);
+         _sysfsPath + "pwm" + _id_str + "/enable", std::ofstream::app);
       if( !sysfs_enable.is_open() )
       {
-         throw std::runtime_error("Unable to disable PWM " + _id_str);
+         throw std::runtime_error("Unable to enable/disable PWM " + _id_str);
       }
       if( state == PWM::State::DISABLED )      sysfs_enable << "0";
       else if( state == PWM::State::ENABLED )  sysfs_enable << "1";

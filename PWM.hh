@@ -51,7 +51,7 @@ public:
 
 
 private:
-    static const std::string  _sysfsPath;
+    static std::string  _sysfsPath;
 
     const unsigned short _id;
     const std::string _id_str;
