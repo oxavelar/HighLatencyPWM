@@ -45,11 +45,10 @@ std::string PWM::_sysfsPath("/sys/class/pwm/");
 PWM::PWM(unsigned short id) :
    _id(id),
    _id_str(std::to_string(id)),
-    _duty_ns(1000000),
-   _period_ns(2000000),
    _state(PWM::State::DISABLED)
 {
    initCommon();
+   setState(PWM::State::DISABLED);
 }
 
 
@@ -61,6 +60,9 @@ PWM::PWM(unsigned short id, PWM::Duty duty_ns, PWM::Period period_ns) :
    _state(PWM::State::DISABLED)
 {
    initCommon();
+   setState(PWM::State::DISABLED);
+   setPeriod(period_ns);
+   setDuty(duty_ns);
 }
 
 
@@ -140,12 +142,6 @@ void PWM::initCommon(void) const
       sysfs_export << _id_str;
       sysfs_export.close();
    }
-   
-   /* Common initializations on default behaivour */
-   //setState(_state);
-   //setPeriod(_period);
-   //setDuty(_duty);
-
 }
 
 PWM::~PWM()
