@@ -72,7 +72,7 @@ void PWM::initCommon(void) const
    {
       if( !boost::filesystem::exists(_sysfsPath) )
       {
-         throw std::runtime_error(_sysfsPath + " does not exist.");
+         throw std::runtime_error(_sysfsPath + " does not exist");
       }
 
       using boost::filesystem::directory_iterator;
@@ -125,8 +125,8 @@ void PWM::initCommon(void) const
       if( stat(path.c_str() , &stat_buf) == 0 )
       {
          throw std::runtime_error(
-            "PWM " + _id_str + " already exported." +
-            "(Some other PWM object already owns this PWM)");
+            "PWM " + _id_str + " already exported" +
+            " (Some other PWM object already owns this PWM)");
       }
    }
 
@@ -160,7 +160,7 @@ PWM::~PWM()
       else /* Do not throw exception in destructor! Effective C++ Item 8. */
       {
          cerr << "Unable to unexport PWM " + _id_str + "!" << endl;
-         cerr << "This will prevent initialization of another PWM object for this PWM." << endl;
+         cerr << "This will prevent initialization of another PWM object for this PWM" << endl;
       }
    }
    catch(...)
