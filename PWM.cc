@@ -146,6 +146,8 @@ void PWM::initCommon(void) const
 
 PWM::~PWM()
 {
+   setState(PWM::State::DISABLED);
+    
    /* attempt to unexport */
    try
    {
