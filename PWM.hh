@@ -51,7 +51,7 @@ public:
 
 
 private:
-    static std::string  _sysfsPath;
+    std::string _sysfsPath;
 
     const unsigned short _id;
     const std::string _id_str;
@@ -59,7 +59,7 @@ private:
     Period _period_ns;
     State _state = State::DISABLED;
 
-    void initCommon(void) const;
+    void initCommon(void);
 };
 
 #endif

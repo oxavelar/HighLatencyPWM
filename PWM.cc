@@ -38,10 +38,6 @@ using std::cerr;
 using std::endl;
 
 
-
-std::string PWM::_sysfsPath("/sys/class/pwm/");
-
-
 PWM::PWM(unsigned short id) :
    _id(id),
    _id_str(std::to_string(id)),
@@ -66,8 +62,10 @@ PWM::PWM(unsigned short id, PWM::Duty duty_ns, PWM::Period period_ns) :
 }
 
 
-void PWM::initCommon(void) const
+void PWM::initCommon(void)
 {
+    _sysfsPath = std::string("/sys/class/pwm/");
+    
    /* validate id # */
    {
       if( !boost::filesystem::exists(_sysfsPath) )
