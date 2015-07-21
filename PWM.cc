@@ -229,13 +229,14 @@ PWM::Duty PWM::getDuty(void)
       throw std::runtime_error("Unable to get duty value for PWM " + _id_str);
    }
 
-   const char value = sysfs_duty.get();
+   std::string value;
+   std::getline(sysfs_duty, value);
    if( !sysfs_duty.good() )
    {
       throw std::runtime_error("Unable to get duty value for PWM " + _id_str);
    }
 
-   Duty val = std::strtoul(&value, NULL, 0);
+   Duty val = std::strtoull(value.c_str(), NULL, 10);
    _duty_ns = val;
    return(val);
 }
@@ -262,13 +263,14 @@ PWM::Period PWM::getPeriod(void)
       throw std::runtime_error("Unable to get period value for PWM " + _id_str);
    }
 
-   const char value = sysfs_period.get();
+   std::string value;
+   std::getline(sysfs_period, value);
    if( !sysfs_period.good() )
    {
       throw std::runtime_error("Unable to get period value for PWM " + _id_str);
    }
-
-   Period val = std::strtoul(&value, NULL, 0);
+   
+   Period val = std::strtoull(value.c_str(), NULL, 10);
    _period_ns = val;
    return(val);
 }
