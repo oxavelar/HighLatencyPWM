@@ -1,7 +1,7 @@
 PROGRAM := pwm
 
 CC = g++
-CXXFLAGS += -O2 -fPIC -Wall -Wextra -Werror -pedantic-errors -std=c++11 -pipe
+CXXFLAGS += -O2 -Wall -Wextra -Werror -pedantic-errors -std=c++11 -pipe
 LDLIBS += -lpthread -lboost_system -lboost_filesystem
 
 SOURCES = demo.cpp PWM.cc
