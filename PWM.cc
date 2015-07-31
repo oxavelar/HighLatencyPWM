@@ -83,7 +83,7 @@ void PWM::initCommon(void)
              itr->path().string().find("pwmchip") != std::string::npos )
          {
             /* Obtain the base number of the chip */
-            size_t pos = itr->path().string().find("pwmchip");
+            std::size_t pos = itr->path().string().find("pwmchip");
             std::string pattern = "pwmchip";
             std::string base = itr->path().string().substr(pos + pattern.length());
             
